@@ -2,6 +2,7 @@ from pathlib import Path
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Literal
 
 
 class Settings(BaseSettings):
@@ -20,6 +21,12 @@ class Settings(BaseSettings):
     embedding_model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     embedding_device: str = "cpu"
     embedding_batch_size: int = 32
+    chroma_persist_dir: Path = Path("data/vectorstore")
+    chroma_collection_name: str = "advanced_rag_children"
+    retrieval_top_k: int = 20
+    chunking_strategy: Literal["recursive", "semantic"] = "semantic"
+    parent_store_path: Path = Path("data/vectorstore/parents.db")
+    retrieval_max_parents: int = 5
 
     @model_validator(mode="after")
     def validate_chunk_settings(self) -> "Settings":
@@ -35,6 +42,10 @@ class Settings(BaseSettings):
             raise ValueError("semantic_breakpoint_percentile must be between 0 and 100")
         if self.parent_min_size >= self.parent_chunk_size:
             raise ValueError("parent_min_size must be smaller than parent_chunk_size")
+        if self.retrieval_top_k <= 0:
+            raise ValueError("retrieval_top_k must be positive")
+        if self.retrieval_max_parents <= 0:
+            raise ValueError("retrieval_max_parents must be positive")
         return self
 
 
