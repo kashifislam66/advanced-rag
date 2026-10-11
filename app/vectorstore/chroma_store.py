@@ -110,3 +110,11 @@ def search_children(
 def count_children(store: Chroma) -> int:
     """Number of stored children. Uses Chroma's underlying collection."""
     return store._collection.count()  # noqa: SLF001 (no public count API)
+
+def get_all_children(store: Chroma) -> list[tuple[str, Document]]:
+    """Return every stored child as (id, Document). Used to build the BM25 index."""
+    data = store.get(include=["documents", "metadatas"])
+    return [
+        (child_id, Document(page_content=text, metadata=metadata or {}))
+        for child_id, text, metadata in zip(data["ids"], data["documents"], data["metadatas"])
+    ]

@@ -10,6 +10,50 @@ from app.vectorstore.parent_store import ParentStore
 logger = logging.getLogger(__name__)
 
 
+def parents_from_ranked_children(
+    parent_store: ParentStore,
+    ranked_children: list[tuple[Document, float]],
+    max_parents: int,
+) -> list[tuple[Document, float]]:
+    """Turn best-first (child, score) pairs into unique (parent, score) pairs.
+
+    Each parent keeps the score of its best (earliest) child.
+    """
+    if max_parents <= 0:
+        raise ValueError("max_parents must be positive")
+
+    ordered_ids: list[str] = []
+    best_score: dict[str, float] = {}
+    for child, score in ranked_children:
+        parent_id = child.metadata.get("parent_id")
+        if parent_id is None:
+            logger.warning("Child without parent_id skipped: %s", child.metadata)
+            continue
+        if parent_id in best_score:
+            continue
+        best_score[parent_id] = score
+        ordered_ids.append(parent_id)
+        if len(ordered_ids) == max_parents:
+            break
+
+    parents_by_id = parent_store.get_many(ordered_ids)
+
+    results: list[tuple[Document, float]] = []
+    for parent_id in ordered_ids:
+        parent = parents_by_id.get(parent_id)
+        if parent is None:
+            logger.warning("Parent %s missing from store", parent_id)
+            continue
+        results.append((parent, best_score[parent_id]))
+
+    logger.info(
+        "%d children scanned -> %d parents returned",
+        len(ranked_children),
+        len(results),
+    )
+    return results
+
+
 def retrieve_parents(
     vector_store: Chroma,
     parent_store: ParentStore,
@@ -18,33 +62,6 @@ def retrieve_parents(
     max_parents: int,
     metadata_filter: dict[str, Any] | None = None,
 ) -> list[tuple[Document, float]]:
-    """Search children, then return their unique parents (best match first)."""
+    """Vector-only retrieval: search children, return their unique parents."""
     child_hits = search_children(vector_store, question, child_k, metadata_filter)
-
-    best_distance: dict[str, float] = {}
-    for child, distance in child_hits:
-        parent_id = child.metadata.get("parent_id")
-        if parent_id is None:
-            logger.warning("Child without parent_id skipped: %s", child.metadata)
-            continue
-        if parent_id not in best_distance or distance < best_distance[parent_id]:
-            best_distance[parent_id] = distance
-
-    ranked_ids = sorted(best_distance, key=best_distance.get)[:max_parents]
-    parents_by_id = parent_store.get_many(ranked_ids)
-
-    results: list[tuple[Document, float]] = []
-    for parent_id in ranked_ids:
-        parent = parents_by_id.get(parent_id)
-        if parent is None:
-            logger.warning("Parent %s missing from store", parent_id)
-            continue
-        results.append((parent, best_distance[parent_id]))
-
-    logger.info(
-        "%d child hits -> %d unique parents -> %d returned",
-        len(child_hits),
-        len(best_distance),
-        len(results),
-    )
-    return results
+    return parents_from_ranked_children(parent_store, child_hits, max_parents)

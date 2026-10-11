@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     chunking_strategy: Literal["recursive", "semantic"] = "semantic"
     parent_store_path: Path = Path("data/vectorstore/parents.db")
     retrieval_max_parents: int = 5
+    bm25_top_k: int = 20
+    rrf_k: int = 60
+    hybrid_fused_k: int = 20
 
     @model_validator(mode="after")
     def validate_chunk_settings(self) -> "Settings":
@@ -46,6 +49,12 @@ class Settings(BaseSettings):
             raise ValueError("retrieval_top_k must be positive")
         if self.retrieval_max_parents <= 0:
             raise ValueError("retrieval_max_parents must be positive")
+        if self.bm25_top_k <= 0:
+            raise ValueError("bm25_top_k must be positive")
+        if self.rrf_k <= 0:
+            raise ValueError("rrf_k must be positive")
+        if self.hybrid_fused_k <= 0:
+            raise ValueError("hybrid_fused_k must be positive")
         return self
 
 
