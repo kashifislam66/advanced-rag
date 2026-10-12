@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     bm25_top_k: int = 20
     rrf_k: int = 60
     hybrid_fused_k: int = 20
+    reranker_model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    reranker_device: str = "cpu"
+    reranker_max_length: int = 512
+    reranker_batch_size: int = 16
+    reranker_candidates: int = 20
+    reranker_top_k: int = 8
+    context_ordering: Literal["best_first", "edges"] = "edges"
 
     @model_validator(mode="after")
     def validate_chunk_settings(self) -> "Settings":
@@ -55,6 +62,10 @@ class Settings(BaseSettings):
             raise ValueError("rrf_k must be positive")
         if self.hybrid_fused_k <= 0:
             raise ValueError("hybrid_fused_k must be positive")
+        if self.reranker_candidates <= 0 or self.reranker_top_k <= 0:
+            raise ValueError("reranker_candidates and reranker_top_k must be positive")
+        if self.reranker_batch_size <= 0:
+            raise ValueError("reranker_batch_size must be positive")
         return self
 
 
