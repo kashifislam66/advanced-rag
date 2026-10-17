@@ -2,6 +2,7 @@ from pathlib import Path
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import SecretStr
 from typing import Literal
 
 
@@ -37,6 +38,14 @@ class Settings(BaseSettings):
     reranker_candidates: int = 20
     reranker_top_k: int = 8
     context_ordering: Literal["best_first", "edges"] = "edges"
+    llm_provider: str = "openai"
+    llm_model: str = "openrouter/free"
+    llm_api_key: SecretStr | None = None
+    llm_temperature: float = 0.0
+    llm_max_tokens: int = 700
+    llm_timeout_seconds: float = 60.0
+    llm_max_retries: int = 2
+    max_chars_per_source: int = 2500
 
     @model_validator(mode="after")
     def validate_chunk_settings(self) -> "Settings":
@@ -66,6 +75,10 @@ class Settings(BaseSettings):
             raise ValueError("reranker_candidates and reranker_top_k must be positive")
         if self.reranker_batch_size <= 0:
             raise ValueError("reranker_batch_size must be positive")
+        if self.llm_max_tokens <= 0 or self.max_chars_per_source <= 0:
+            raise ValueError("llm_max_tokens and max_chars_per_source must be positive")
+        if not 0.0 <= self.llm_temperature <= 1.0:
+            raise ValueError("llm_temperature must be between 0 and 1")
         return self
 
 
