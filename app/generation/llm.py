@@ -7,7 +7,7 @@ from langchain_core.language_models import BaseChatModel
 logger = logging.getLogger(__name__)
 
 
-@lru_cache(maxsize=1)
+@lru_cache(maxsize=4)
 def get_llm(
     provider: str,
     model: str,

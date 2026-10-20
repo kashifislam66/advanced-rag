@@ -30,7 +30,7 @@ class Answer:
     output_tokens: int | None
 
 
-def _message_text(content: object) -> str:
+def message_text(content: object) -> str:
     """LLM content is usually a string, but can be a list of blocks."""
     if isinstance(content, str):
         return content
@@ -95,7 +95,7 @@ def generate_answer(
     output_tokens = usage.get("output_tokens")
     logger.info("LLM tokens: input=%s output=%s", input_tokens, output_tokens)
 
-    text = _message_text(response.content).strip()
+    text = message_text(response.content).strip()
     if not text or NO_ANSWER_TEXT.lower() in text.lower():
         return Answer(NO_ANSWER_TEXT, [], False, input_tokens, output_tokens)
 

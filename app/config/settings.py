@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = 60.0
     llm_max_retries: int = 2
     max_chars_per_source: int = 2500
+    crag_max_retries: int = 2
+    grader_model: str = ""
+    grader_max_tokens: int = 300
+    grader_chars_per_source: int = 1200
 
     @model_validator(mode="after")
     def validate_chunk_settings(self) -> "Settings":
@@ -79,6 +83,10 @@ class Settings(BaseSettings):
             raise ValueError("llm_max_tokens and max_chars_per_source must be positive")
         if not 0.0 <= self.llm_temperature <= 1.0:
             raise ValueError("llm_temperature must be between 0 and 1")
+        if self.crag_max_retries < 0:
+            raise ValueError("crag_max_retries must be 0 or more")
+        if self.grader_max_tokens <= 0 or self.grader_chars_per_source <= 0:
+            raise ValueError("grader_max_tokens and grader_chars_per_source must be positive")
         return self
 
 
