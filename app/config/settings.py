@@ -50,6 +50,12 @@ class Settings(BaseSettings):
     grader_model: str = ""
     grader_max_tokens: int = 300
     grader_chars_per_source: int = 1200
+    eval_set_path: Path = Path("data/evaluation/eval_set.jsonl")
+    eval_runs_dir: Path = Path("data/evaluation/runs")
+    eval_judge_model: str = ""
+    eval_judge_max_tokens: int = 2000
+    eval_ragas_workers: int = 4
+    eval_ragas_timeout: int = 180
 
     @model_validator(mode="after")
     def validate_chunk_settings(self) -> "Settings":
@@ -87,6 +93,10 @@ class Settings(BaseSettings):
             raise ValueError("crag_max_retries must be 0 or more")
         if self.grader_max_tokens <= 0 or self.grader_chars_per_source <= 0:
             raise ValueError("grader_max_tokens and grader_chars_per_source must be positive")
+        if self.eval_judge_max_tokens <= 0 or self.eval_ragas_workers <= 0 or self.eval_ragas_timeout <= 0:
+            raise ValueError("eval judge tokens, workers and timeout must be positive")
+        if self.eval_judge_max_tokens <= 0 or self.eval_ragas_workers <= 0 or self.eval_ragas_timeout <= 0:
+            raise ValueError("eval judge tokens, workers and timeout must be positive")
         return self
 
 

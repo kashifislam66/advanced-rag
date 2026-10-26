@@ -76,3 +76,20 @@ class ParentStore:
 
     def close(self) -> None:
         self._conn.close()
+
+    def list_sources(self) -> set[str]:
+        """Every distinct source file stored."""
+        rows = self._conn.execute("SELECT DISTINCT source FROM parents").fetchall()
+        return {row[0] for row in rows}
+
+    def sample(self, count: int) -> list[Document]:
+        """Return `count` random parents (to help write evaluation questions)."""
+        if count <= 0:
+            raise ValueError("count must be positive")
+        cursor = self._conn.execute(
+            "SELECT content, metadata FROM parents ORDER BY RANDOM() LIMIT ?", (count,)
+        )
+        return [
+            Document(page_content=content, metadata=json.loads(metadata))
+            for content, metadata in cursor
+        ]
