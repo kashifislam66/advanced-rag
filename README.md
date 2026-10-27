@@ -16,7 +16,6 @@ A production-style Retrieval-Augmented Generation system built with Python, Lang
 - [Configuration](#configuration)
 - [API](#api)
 - [Evaluation](#evaluation)
-- [Results](#results)
 - [Security and privacy](#security-and-privacy)
 - [Design decisions](#design-decisions)
 - [Testing and CI](#testing-and-ci)
@@ -296,23 +295,6 @@ python -m scripts.compare_runs hybrid_rerank crag --tolerance 0.05 --fail-on-reg
 
 ---
 
-## Results
-
-> Fill this table with **your own measured numbers** and delete this note. Do not publish estimates.
-
-Dev split, **N = ___** questions (one question = **___** points). Judge model: `___`. RAGAS version: `___`.
-
-| Variant | Hit rate | MRR | False refusal | Faithfulness | Context recall | Median latency | LLM calls |
-|---|---|---|---|---|---|---|---|
-| vector_only | | | | | | | |
-| bm25_only | | | | | | | |
-| hybrid | | | | | | | |
-| hybrid_rerank | | | | | | | |
-| hybrid_rerank_edges | | | | | | | |
-| crag | | | | | | | |
-
-**Test split result for the chosen variant:** `___`
-
 **Takeaways** (write three sentences from your data):
 1. Largest gain came from: `___`
 2. Gain within noise, kept optional: `___`
@@ -389,6 +371,3 @@ The evaluation harness is run locally because it needs the private document corp
 
 ---
 
-## License
-
-Add your license here (for example MIT) and a `LICENSE` file.
