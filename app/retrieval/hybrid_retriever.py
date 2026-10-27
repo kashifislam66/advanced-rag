@@ -26,12 +26,18 @@ class HybridHit:
 
 
 def to_chroma_filter(metadata_filter: dict[str, Any] | None) -> dict[str, Any] | None:
-    """Chroma needs {"$and": [...]} when more than one condition is given."""
+    """Translate our simple filter into Chroma's syntax. Lists become $in."""
     if not metadata_filter:
         return None
-    if len(metadata_filter) == 1:
-        return dict(metadata_filter)
-    return {"$and": [{key: value} for key, value in metadata_filter.items()]}
+    conditions: list[dict[str, Any]] = []
+    for key, value in metadata_filter.items():
+        if isinstance(value, (list, tuple, set)):
+            if not value:
+                raise ValueError(f"Filter '{key}' is an empty list; refusing to search")
+            conditions.append({key: {"$in": list(value)}})
+        else:
+            conditions.append({key: value})
+    return conditions[0] if len(conditions) == 1 else {"$and": conditions}
 
 
 def hybrid_search_children(

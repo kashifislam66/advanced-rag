@@ -56,6 +56,13 @@ class Settings(BaseSettings):
     eval_judge_max_tokens: int = 2000
     eval_ragas_workers: int = 4
     eval_ragas_timeout: int = 180
+    environment: Literal["dev", "prod"] = "dev"
+    rag_mode: Literal["simple", "crag"] = "simple"
+    api_keys_file: Path = Path("config/api_keys.json")
+    max_question_chars: int = 1000
+    rate_limit_per_minute: int = 30
+    max_concurrent_requests: int = 2
+    queue_wait_seconds: float = 5.0
 
     @model_validator(mode="after")
     def validate_chunk_settings(self) -> "Settings":
@@ -97,6 +104,10 @@ class Settings(BaseSettings):
             raise ValueError("eval judge tokens, workers and timeout must be positive")
         if self.eval_judge_max_tokens <= 0 or self.eval_ragas_workers <= 0 or self.eval_ragas_timeout <= 0:
             raise ValueError("eval judge tokens, workers and timeout must be positive")
+        if min(self.max_question_chars, self.rate_limit_per_minute, self.max_concurrent_requests) <= 0:
+            raise ValueError("max_question_chars, rate_limit_per_minute and max_concurrent_requests must be positive")
+        if self.queue_wait_seconds < 0:
+            raise ValueError("queue_wait_seconds must be 0 or more")
         return self
 
 

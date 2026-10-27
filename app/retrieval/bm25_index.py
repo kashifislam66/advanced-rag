@@ -22,9 +22,15 @@ def tokenize(text: str) -> list[str]:
 
 
 def _matches(doc: Document, metadata_filter: dict[str, Any]) -> bool:
-    """True if every key/value in the filter equals the document's metadata."""
-    return all(doc.metadata.get(key) == value for key, value in metadata_filter.items())
-
+    """True if every filter condition holds. A list value means 'any of these'."""
+    for key, expected in metadata_filter.items():
+        actual = doc.metadata.get(key)
+        if isinstance(expected, (list, tuple, set)):
+            if actual not in expected:
+                return False
+        elif actual != expected:
+            return False
+    return True
 
 class BM25Index:
     """In-memory BM25 keyword index over child chunks."""

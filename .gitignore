@@ -4,3 +4,4 @@ data/vectorstore/
 __pycache__/
 .venv/
 data/evaluation/runs/
+config/api_keys.json

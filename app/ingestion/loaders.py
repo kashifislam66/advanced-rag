@@ -59,6 +59,8 @@ def load_documents(directory: Path) -> list[Document]:
                 continue
             doc.metadata["source"] = str(path.relative_to(directory))
             doc.metadata["file_type"] = path.suffix.lower().lstrip(".")
+            parts = path.relative_to(directory).parts
+            doc.metadata["department"] = parts[0].lower() if len(parts) > 1 else "public"
             documents.append(doc)
 
     logger.info("Loaded %d documents from %s", len(documents), directory)
